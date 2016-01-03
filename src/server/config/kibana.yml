@@ -11,9 +11,13 @@ elasticsearch_url: "http://localhost:9200"
 # then the host you use to connect to *this* Kibana instance will be sent.
 elasticsearch_preserve_host: true
 
+# For AWS Hosted ElasticSearch
+# transport: "AWS"
+# region: "us-west-2"
+
 # Kibana uses an index in Elasticsearch to store saved searches, visualizations
 # and dashboards. It will create a new index if it doesn't already exist.
-kibana_index: ".kibana"
+kibana_index: ".kibana-4"
 
 # If your Elasticsearch is protected with basic auth, this is the user credentials
 # used by the Kibana server to perform maintence on the kibana_index at statup. Your Kibana

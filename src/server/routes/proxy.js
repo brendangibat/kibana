@@ -9,6 +9,8 @@ var url = require('url');
 var join = require('path').join;
 var logger = require('../lib/logger');
 var validateRequest = require('../lib/validateRequest');
+var aws4 = require('aws4');
+var AWS = require('aws-sdk');
 
 // Create the router
 var router = module.exports = express.Router();
@@ -86,6 +88,31 @@ router.use(function (req, res, next) {
     options.headers.host = router.proxyTarget.host;
   }
 
+  if (config.kibana.transport === 'AWS') {
+    var signingOptions = {
+      path: path,
+      body: options.body,
+      host: options.headers.host,
+      method: options.method,
+      service: 'es',
+      region: config.kibana.region,
+      headers: {}
+    };
+
+    if (options.headers['content-type']) {
+      signingOptions.headers['content-type'] = options.headers['content-type'];
+    }
+
+    if (options.headers['content-length']) {
+      signingOptions.headers['content-length'] = options.headers['content-length'];
+    }
+
+    aws4.sign(signingOptions, AWS.config.credentials);
+    options.headers['x-amz-security-token'] = signingOptions.headers['X-Amz-Security-Token'];
+    options.headers['x-amz-date'] = signingOptions.headers['X-Amz-Date'];
+    options.headers.authorization = signingOptions.headers.Authorization;
+  }
+
   // Create the request and pipe the response
   var esRequest = request(options);
   esRequest.on('error', function (err) {
@@ -106,4 +133,3 @@ router.use(function (req, res, next) {
   });
   esRequest.pipe(res);
 });
-
